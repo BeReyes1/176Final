@@ -69,10 +69,10 @@ namespace KinematicCharacterController.Examples
         [SerializeField] private float grapplePullSpeed = 30f;
         [SerializeField] private float grappleStopDistance = 2f;
         [SerializeField] private LayerMask grappleLayer;
-        [SerializeField] private Transform cameraTransform;
+        [SerializeField] private Transform grappleTransform;
         [SerializeField] private LineRenderer grappleLine;
-
-
+        [SerializeField] private float grappleCooldown = 2.5f;
+        private bool canGrapple = true;
         private bool isGrappling;
         private Vector3 grapplePoint;
 
@@ -144,7 +144,7 @@ namespace KinematicCharacterController.Examples
 
         private void HandleGrapple()
         {
-            if (isGrappling) return;
+            if (isGrappling || !canGrapple) return;
 
             StartGrapple();
         }
@@ -348,7 +348,7 @@ namespace KinematicCharacterController.Examples
                     {
                         if (isGrappling)
                         {
-                            Vector3 startPoint = cameraTransform.position;
+                            Vector3 startPoint = grappleTransform.position;
                             grappleLine.SetPosition(0, startPoint);
                             grappleLine.SetPosition(1, grapplePoint);
 
@@ -491,8 +491,9 @@ namespace KinematicCharacterController.Examples
         {
             RaycastHit hit;
 
-            if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, grappleMaxDistance, grappleLayer))
+            if (Physics.Raycast(grappleTransform.position, grappleTransform.forward, out hit, grappleMaxDistance, grappleLayer))
             {
+                canGrapple = false;
                 grapplePoint = hit.point;
                 isGrappling = true;
 
@@ -506,6 +507,16 @@ namespace KinematicCharacterController.Examples
         {
             isGrappling = false;
             grappleLine.enabled = false;
+
+            StartCoroutine(ResetGrapple());
+
+        }
+
+        private IEnumerator ResetGrapple()
+        {
+            yield return new WaitForSeconds(grappleCooldown);
+
+            canGrapple = true;
         }
 
         /// <summary>
