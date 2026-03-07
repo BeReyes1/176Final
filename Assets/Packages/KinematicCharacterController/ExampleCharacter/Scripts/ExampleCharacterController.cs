@@ -103,6 +103,8 @@ namespace KinematicCharacterController.Examples
         private Vector3 lastInnerNormal = Vector3.zero;
         private Vector3 lastOuterNormal = Vector3.zero;
 
+        private float springForce;
+        private bool springJump;
         private bool sprinted;
         private Vector2 moveDirection;
         private void OnEnable()
@@ -448,6 +450,17 @@ namespace KinematicCharacterController.Examples
                             currentVelocity *= (1f / (1f + (Drag * deltaTime)));
                         }
 
+                        if (springJump)
+                        {
+                            springJump = false;
+                            Vector3 jumpDirection = Motor.CharacterUp;
+
+                            Motor.ForceUnground();
+
+                            currentVelocity += (jumpDirection * springForce) - Vector3.Project(currentVelocity, Motor.CharacterUp);
+                            currentVelocity += (_moveInputVector * JumpScalableForwardSpeed);
+                        }
+
                         // Handle jumping
                         _jumpedThisFrame = false;
                         _timeSinceJumpRequested += deltaTime;
@@ -470,7 +483,7 @@ namespace KinematicCharacterController.Examples
                                 // Add to the return velocity and reset jump state
                                 currentVelocity += (jumpDirection * JumpUpSpeed) - Vector3.Project(currentVelocity, Motor.CharacterUp);
                                 currentVelocity += (_moveInputVector * JumpScalableForwardSpeed);
-                                _jumpRequested = false;
+                                   _jumpRequested = false;
                                 _jumpConsumed = true;
                                 _jumpedThisFrame = true;
                             }
@@ -485,6 +498,13 @@ namespace KinematicCharacterController.Examples
                         break;
                     }
             }
+        }
+
+        public void SpringJump(float forceToAdd = 20)
+        {
+            springJump = true;
+
+            springForce = forceToAdd;
         }
 
         private void StartGrapple()
