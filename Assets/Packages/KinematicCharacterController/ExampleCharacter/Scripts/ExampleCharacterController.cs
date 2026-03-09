@@ -65,14 +65,25 @@ namespace KinematicCharacterController.Examples
         public float JumpPostGroundingGraceTime = 0f;
 
         [Header("Grappling")]
-        [SerializeField] private float grappleMaxDistance = 50f;
-        [SerializeField] private float grapplePullSpeed = 30f;
+        [SerializeField] private float grappleMaxDistance = 175f;
+        [SerializeField] private float grapplePullSpeed = 0.2f;
         [SerializeField] private float grappleStopDistance = 2f;
         [SerializeField] private LayerMask grappleLayer;
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private LineRenderer grappleLine;
 
+        public enum GrappleMode
+        {
+            Swing,
+            Pull
+        }
 
+        private GrappleMode grappleMode;
+
+        private float ropeLength;
+
+        public float swingStrength = 0.05f;
+        public float ropeTightness = 50f;
         private bool isGrappling;
         private Vector3 grapplePoint;
 
@@ -144,9 +155,15 @@ namespace KinematicCharacterController.Examples
 
         private void HandleGrapple()
         {
-            if (isGrappling) return;
+            if (isGrappling) 
+            {
+                StopGrapple();
+            }
+            else
+            {
+                StartGrapple();  
+            }
 
-            StartGrapple();
         }
 
         private void Awake()
@@ -346,7 +363,7 @@ namespace KinematicCharacterController.Examples
             {
                 case CharacterState.Default:
                     {
-                        if (isGrappling)
+                        if (isGrappling && grappleMode == GrappleMode.Pull)
                         {
                             Vector3 startPoint = cameraTransform.position;
                             grappleLine.SetPosition(0, startPoint);
@@ -369,6 +386,34 @@ namespace KinematicCharacterController.Examples
                             }
 
                             currentVelocity = grappleVelocity;
+                            return;
+                        }
+                        if (isGrappling && grappleMode == GrappleMode.Swing)
+                        {   
+                            Vector3 startPoint = cameraTransform.position;
+                            grappleLine.SetPosition(0, startPoint);
+                            grappleLine.SetPosition(1, grapplePoint);
+
+                            Vector3 toAnchor = Motor.TransientPosition - grapplePoint;
+                            float distance = toAnchor.magnitude;
+
+                            Vector3 dir = toAnchor.normalized;
+
+                            if (distance > ropeLength)
+                            {
+                                Vector3 correction = dir * (distance - ropeLength);
+
+                                Motor.SetTransientPosition(Motor.TransientPosition - correction);
+
+                                currentVelocity = Vector3.ProjectOnPlane(currentVelocity, dir);
+                            }
+
+                            Vector3 swingForce = _moveInputVector * swingStrength;
+
+                            currentVelocity += swingForce * deltaTime;
+                            currentVelocity += Gravity * deltaTime;
+                            currentVelocity *= (1f / (1f + (Drag * deltaTime)));
+
                             return;
                         }
 
@@ -491,10 +536,13 @@ namespace KinematicCharacterController.Examples
         {
             RaycastHit hit;
 
-            if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, grappleMaxDistance, grappleLayer))
+            if (Physics.Raycast(cameraTransform.position, Camera.main.transform.forward, out hit, grappleMaxDistance, grappleLayer))
             {
                 grapplePoint = hit.point;
                 isGrappling = true;
+                grappleMode = GrappleMode.Swing;
+
+                ropeLength = Vector3.Distance(Motor.TransientPosition, grapplePoint);
 
                 Motor.ForceUnground();
                 grappleLine.enabled = true;
@@ -603,10 +651,7 @@ namespace KinematicCharacterController.Examples
 
         public void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
         {
-            if (isGrappling)
-            {
-                StopGrapple();
-            }
+
         }
 
         public void AddVelocity(Vector3 velocity)
