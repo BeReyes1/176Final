@@ -147,6 +147,15 @@ namespace New
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""GrapplePull"",
+                    ""type"": ""Button"",
+                    ""id"": ""a7d12134-513d-4f75-97d8-bbc4d321b3e4"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -411,6 +420,17 @@ namespace New
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Grapple"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cccc53e0-68e4-4057-b9f9-c9ae48a10e49"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""GrapplePull"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1004,6 +1024,7 @@ namespace New
             m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
             m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
             m_Player_Grapple = m_Player.FindAction("Grapple", throwIfNotFound: true);
+            m_Player_GrapplePull = m_Player.FindAction("GrapplePull", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1103,6 +1124,7 @@ namespace New
         private readonly InputAction m_Player_Jump;
         private readonly InputAction m_Player_Sprint;
         private readonly InputAction m_Player_Grapple;
+        private readonly InputAction m_Player_GrapplePull;
         /// <summary>
         /// Provides access to input actions defined in input action map "Player".
         /// </summary>
@@ -1138,6 +1160,10 @@ namespace New
             /// Provides access to the underlying input action "Player/Grapple".
             /// </summary>
             public InputAction @Grapple => m_Wrapper.m_Player_Grapple;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/GrapplePull".
+            /// </summary>
+            public InputAction @GrapplePull => m_Wrapper.m_Player_GrapplePull;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1182,6 +1208,9 @@ namespace New
                 @Grapple.started += instance.OnGrapple;
                 @Grapple.performed += instance.OnGrapple;
                 @Grapple.canceled += instance.OnGrapple;
+                @GrapplePull.started += instance.OnGrapplePull;
+                @GrapplePull.performed += instance.OnGrapplePull;
+                @GrapplePull.canceled += instance.OnGrapplePull;
             }
 
             /// <summary>
@@ -1211,6 +1240,9 @@ namespace New
                 @Grapple.started -= instance.OnGrapple;
                 @Grapple.performed -= instance.OnGrapple;
                 @Grapple.canceled -= instance.OnGrapple;
+                @GrapplePull.started -= instance.OnGrapplePull;
+                @GrapplePull.performed -= instance.OnGrapplePull;
+                @GrapplePull.canceled -= instance.OnGrapplePull;
             }
 
             /// <summary>
@@ -1553,6 +1585,13 @@ namespace New
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnGrapple(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "GrapplePull" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnGrapplePull(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

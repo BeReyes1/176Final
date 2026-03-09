@@ -29,6 +29,7 @@ public class InputReader : ScriptableObject, CustomInput.IPlayerActions
     public event Action<Vector2> MoveEvent;
     public event Action SprintEvent;
     public event Action GrappleEvent;
+    public event Action GrapplePullEvent;
 
     public void OnCrouch(InputAction.CallbackContext context)
     {
@@ -63,6 +64,13 @@ public class InputReader : ScriptableObject, CustomInput.IPlayerActions
         if (context.phase == InputActionPhase.Performed)
         {
             GrappleEvent?.Invoke();
+        }
+    }
+    public void OnGrapplePull(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            GrapplePullEvent?.Invoke();
         }
     }
 }

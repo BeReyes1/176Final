@@ -122,6 +122,7 @@ namespace KinematicCharacterController.Examples
             inputReader.JumpEvent += HandleJump;
             inputReader.SprintEvent += HandleSprint;
             inputReader.GrappleEvent += HandleGrapple;
+            inputReader.GrapplePullEvent += HandleGrapplePull;
         }
 
         private void OnDisable()
@@ -129,7 +130,7 @@ namespace KinematicCharacterController.Examples
             inputReader.MoveEvent -= HandleMove;
             inputReader.JumpEvent -= HandleJump;
             inputReader.SprintEvent -= HandleSprint;
-            inputReader.GrappleEvent -= HandleGrapple;
+            inputReader.GrapplePullEvent -= HandleGrapplePull;
         }
 
         private void HandleMove(Vector2 direction)
@@ -163,7 +164,13 @@ namespace KinematicCharacterController.Examples
             {
                 StartGrapple();  
             }
-
+        }
+        private void HandleGrapplePull()
+        {
+            if (isGrappling)
+            {
+                grapplePull();
+            }
         }
 
         private void Awake()
@@ -363,32 +370,7 @@ namespace KinematicCharacterController.Examples
             {
                 case CharacterState.Default:
                     {
-                        if (isGrappling && grappleMode == GrappleMode.Pull)
-                        {
-                            Vector3 startPoint = cameraTransform.position;
-                            grappleLine.SetPosition(0, startPoint);
-                            grappleLine.SetPosition(1, grapplePoint);
-
-                            Vector3 toTarget = grapplePoint - Motor.TransientPosition;
-                            float distance = toTarget.magnitude;
-
-                            Vector3 direction = toTarget.normalized;
-                            Vector3 grappleVelocity = direction * grapplePullSpeed;
-
-                            if (distance <= grapplePullSpeed * deltaTime)
-                            {
-                                Motor.SetTransientPosition(grapplePoint);
-
-                                currentVelocity = Vector3.zero;
-
-                                StopGrapple();
-                                return;
-                            }
-
-                            currentVelocity = grappleVelocity;
-                            return;
-                        }
-                        if (isGrappling && grappleMode == GrappleMode.Swing)
+                        if (isGrappling)
                         {   
                             Vector3 startPoint = cameraTransform.position;
                             grappleLine.SetPosition(0, startPoint);
@@ -406,6 +388,13 @@ namespace KinematicCharacterController.Examples
                                 Motor.SetTransientPosition(Motor.TransientPosition - correction);
 
                                 currentVelocity = Vector3.ProjectOnPlane(currentVelocity, dir);
+                            }
+                            if(grappleMode == GrappleMode.Pull)
+                            {
+                                if(ropeLength > grappleStopDistance){
+                                    ropeLength -= grapplePullSpeed * deltaTime;
+                                    currentVelocity -= grapplePullSpeed * deltaTime * dir;
+                                }
                             }
 
                             Vector3 swingForce = _moveInputVector * swingStrength;
@@ -549,7 +538,17 @@ namespace KinematicCharacterController.Examples
                 grappleLine.positionCount = 2;
             }
         }
-
+        private void grapplePull()
+        {
+        if (grappleMode == GrappleMode.Pull)
+            {
+                grappleMode = GrappleMode.Swing;
+            }
+            else
+            {
+                grappleMode = GrappleMode.Pull;
+            }
+        }
         private void StopGrapple()
         {
             isGrappling = false;
