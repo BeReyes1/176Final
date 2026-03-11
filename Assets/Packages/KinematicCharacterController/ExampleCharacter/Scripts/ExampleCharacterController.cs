@@ -107,6 +107,8 @@ namespace KinematicCharacterController.Examples
         private bool springJump;
         private bool sprinted;
         private Vector2 moveDirection;
+
+        public event Action<bool> GrappleEvent;
         private void OnEnable()
         {
             inputReader.MoveEvent += HandleMove;
@@ -520,6 +522,7 @@ namespace KinematicCharacterController.Examples
                 Motor.ForceUnground();
                 grappleLine.enabled = true;
                 grappleLine.positionCount = 2;
+                GrappleEvent?.Invoke(false);
             }
         }
 
@@ -535,7 +538,7 @@ namespace KinematicCharacterController.Examples
         private IEnumerator ResetGrapple()
         {
             yield return new WaitForSeconds(grappleCooldown);
-
+            GrappleEvent?.Invoke(true);
             canGrapple = true;
         }
 
